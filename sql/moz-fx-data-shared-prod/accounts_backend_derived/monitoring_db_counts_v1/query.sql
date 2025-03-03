@@ -153,6 +153,15 @@ WITH table_counts AS (
     )
   UNION ALL
   SELECT
+    'recovery_phones' AS table_name,
+    COUNT(*) AS total_rows
+  FROM
+    `moz-fx-data-shared-prod.accounts_db_external.fxa_recovery_phones_v1` FOR SYSTEM_TIME AS OF TIMESTAMP(
+      @as_of_date + 1,
+      'UTC'
+    )
+  UNION ALL
+  SELECT
     'security_events' AS table_name,
     COUNT(*) AS total_rows
   FROM
@@ -290,6 +299,32 @@ WITH table_counts AS (
         )
       WHERE
         providerId = 2 -- see LinkedAccountProviderIds at https://github.com/mozilla/fxa/blob/main/packages/fxa-settings/src/lib/types.ts
+    )
+  UNION ALL
+    (
+      SELECT
+        "recovery_phones_country_code_ca" AS table_name,
+        COUNT(uid) AS total_rows
+      FROM
+        `moz-fx-data-shared-prod.accounts_db_external.fxa_recovery_phones_v1` FOR SYSTEM_TIME AS OF TIMESTAMP(
+          @as_of_date + 1,
+          'UTC'
+        )
+      WHERE
+        SAFE.JSON_EXTRACT_SCALAR(lookupData, '$.countryCode') = 'CA'
+    )
+  UNION ALL
+    (
+      SELECT
+        "recovery_phones_country_code_us" AS table_name,
+        COUNT(uid) AS total_rows
+      FROM
+        `moz-fx-data-shared-prod.accounts_db_external.fxa_recovery_phones_v1` FOR SYSTEM_TIME AS OF TIMESTAMP(
+          @as_of_date + 1,
+          'UTC'
+        )
+      WHERE
+        SAFE.JSON_EXTRACT_SCALAR(lookupData, '$.countryCode') = 'US'
     )
 )
 SELECT
